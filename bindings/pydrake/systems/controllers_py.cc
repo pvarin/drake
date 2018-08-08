@@ -39,7 +39,7 @@ PYBIND11_MODULE(controllers, m) {
                      &DynamicProgrammingOptions::visualization_callback);
 
   py::class_<InverseDynamicsController<double>, Diagram<double>>(
-      m, "InverseDynamicsController")
+      m, "InverseDynamicsController", py::multiple_inheritance())
       .def(py::init<std::unique_ptr<RigidBodyTree<double>>,
                     const VectorX<double>&,
                     const VectorX<double>&,

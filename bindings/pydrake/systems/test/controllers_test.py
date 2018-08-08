@@ -13,8 +13,10 @@ from pydrake.systems.controllers import (
     LinearProgrammingApproximateDynamicProgramming,
     PeriodicBoundaryCondition
 )
-from pydrake.systems.framework import BasicVector
-from pydrake.systems.primitives import (Integrator, LinearSystem)
+from pydrake.systems.framework import BasicVector, DiagramBuilder
+from pydrake.systems.primitives import (
+    Integrator, LinearSystem, ConstantVectorSource
+)
 from pydrake.common import FindResourceOrThrow
 from pydrake.multibody.rigid_body_tree import RigidBodyTree, FloatingBaseType
 
@@ -148,6 +150,11 @@ class TestControllers(unittest.TestCase):
         controller.CalcOutput(context, output)
         self.assertTrue(np.allclose(output.get_vector_data(0).CopyToVector(),
                         expected_torque))
+
+    def test_add_system(self):
+        builder = DiagramBuilder()
+        system = ConstantVectorSource(np.zeros(3))
+        builder.AddSystem(system)
 
     def test_linear_quadratic_regulator(self):
         A = np.array([[0, 1], [0, 0]])

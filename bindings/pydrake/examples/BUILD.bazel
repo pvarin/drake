@@ -64,6 +64,20 @@ drake_pybind_library(
 )
 
 drake_pybind_library(
+    name = "kuka_iiwa_arm_py",
+    cc_deps = [
+        "//examples/kuka_iiwa_arm:iiwa_lcm",
+    ],
+    cc_so_name = "kuka_iiwa_arm",
+    cc_srcs = ["kuka_iiwa_arm_py.cc"],
+    package_info = PACKAGE_INFO,
+    py_deps = [
+        ":module_py",
+        "//bindings/pydrake/systems",
+    ],
+)
+
+drake_pybind_library(
     name = "pendulum_py",
     cc_deps = [
         "//examples/pendulum:pendulum_plant",

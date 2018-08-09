@@ -122,6 +122,7 @@ drake_pybind_library(
 PY_LIBRARIES_WITH_INSTALL = [
     ":acrobot_py",
     ":compass_gait_py",
+    ":kuka_iiwa_arm_py",
     ":pendulum_py",
     ":rimless_wheel_py",
     ":van_der_pol_py",

@@ -13,7 +13,8 @@ package(default_visibility = ["//visibility:public"])
 drake_cc_package_library(
     name = "learning",
     deps = [
-        ":pomdp_diagram_builder",
+        ":mdp_diagram",
+        ":quadratic_reward",
         ":reward_system_interface",
         ":state_observer_interface",
     ],
@@ -36,9 +37,9 @@ drake_cc_library(
 )
 
 drake_cc_library(
-    name = "pomdp_diagram_builder",
-    srcs = ["pomdp_diagram_builder.cc"],
-    hdrs = ["pomdp_diagram_builder.h"],
+    name = "mdp_diagram",
+    srcs = ["mdp_diagram.cc"],
+    hdrs = ["mdp_diagram.h"],
     deps = [
         ":reward_system_interface",
         ":state_observer_interface",
@@ -46,6 +47,16 @@ drake_cc_library(
         "//systems/primitives:adder",
         "//systems/primitives:multiplexer",
         "//systems/primitives:pass_through",
+    ],
+)
+
+drake_cc_library(
+    name = "quadratic_reward",
+    srcs = ["quadratic_reward.cc"],
+    hdrs = ["quadratic_reward.h"],
+    deps = [
+        ":reward_system_interface",
+        "//systems/framework",
     ],
 )
 

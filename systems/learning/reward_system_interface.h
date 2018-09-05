@@ -9,7 +9,7 @@ namespace systems {
 namespace learning {
 
 /**
- * Interface for a reward system for use with the POMDP framework. This class
+ * Interface for a reward system for use with the MDP framework. This class
  * needs to be extended by concrete implementations. It provides named accessors
  * to a action and state port input ports and the observation output port.
  */
@@ -34,9 +34,7 @@ class RewardSystemInterface {
   virtual const OutputPort<T>& get_output_port_reward() const = 0;
 
  protected:
-  RewardSystemInterface() {
-    DRAKE_DEMAND(this->get_output_port_reward().size() == 1);
-  }
+  RewardSystemInterface() {}
   virtual ~RewardSystemInterface() {}
 };
 

@@ -1,4 +1,4 @@
-#include "drake/systems/learning/pomdp_diagram_builder.h"
+#include "drake/systems/learning/mdp_diagram.h"
 
 #include "drake/systems/primitives/adder.h"
 #include "drake/systems/primitives/multiplexer.h"
@@ -13,14 +13,17 @@ using drake::systems::Multiplexer;
 using drake::systems::PassThrough;
 
 template <typename T>
-void PomdpDiagramBuilder<T>::ConnectObserversAndRewards() {
+void MdpDiagram<T>::ConnectObserversAndRewards() {
   DRAKE_DEMAND(reward_systems_.size() > 0);
 
-  // Expose the plant input.
+  // Expose the action port and connect to the plant.
   auto action = builder_.template AddSystem<PassThrough<T>>(
       plant_->get_input_port(0).size());
-  builder_.ExportInput(action->get_input_port());
+  input_port_action_ = builder_.ExportInput(action->get_input_port());
   builder_.Connect(action->get_output_port(), plant_->get_input_port(0));
+
+  // Expose the state output port
+  output_port_state_ = builder_.ExportOutput(plant_->get_output_port(0));
 
   // Connect the plant to the observers.
   for (auto observer : observers_) {
@@ -39,10 +42,12 @@ void PomdpDiagramBuilder<T>::ConnectObserversAndRewards() {
   // Expose the observation output.
   if (observers_.size() == 0) {
     // If there are no observers expose the state.
-    builder_.ExportOutput(plant_->get_output_port(0));
+    output_port_observation_ =
+        builder_.ExportOutput(plant_->get_output_port(0));
   } else if (observers_.size() == 1) {
     // If there is only one observer expose the observation.
-    builder_.ExportOutput(observers_.front()->get_output_port_observation());
+    output_port_observation_ = builder_.ExportOutput(
+        observers_.front()->get_output_port_observation());
   } else {
     // If there is more than one observer multiples the outputs.
     std::vector<int> observation_sizes;
@@ -55,12 +60,13 @@ void PomdpDiagramBuilder<T>::ConnectObserversAndRewards() {
       builder_.Connect(observers_[i]->get_output_port_observation(),
                        mux->get_input_port(i));
     }
-    builder_.ExportOutput(mux->get_output_port(0));
+    output_port_observation_ = builder_.ExportOutput(mux->get_output_port(0));
   }
 
   // Expose the reward output.
   if (reward_systems_.size() == 1) {
-    builder_.ExportOutput(reward_systems_.front()->get_output_port_reward());
+    output_port_reward_ = builder_.ExportOutput(
+        reward_systems_.front()->get_output_port_reward());
   } else {
     // If there are more than one reward systems add them together.
     auto adder =
@@ -69,11 +75,11 @@ void PomdpDiagramBuilder<T>::ConnectObserversAndRewards() {
       builder_.Connect(reward_systems_[i]->get_output_port_reward(),
                        adder->get_input_port(i));
     }
-    builder_.ExportOutput(adder->get_output_port());
+    output_port_reward_ = builder_.ExportOutput(adder->get_output_port());
   }
 }
 
-template class PomdpDiagramBuilder<double>;
+template class MdpDiagram<double>;
 
 }  // namespace learning
 }  // namespace systems

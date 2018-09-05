@@ -14,43 +14,25 @@ namespace systems {
 namespace learning {
 
 /**
- * A wrapper class around DiagramBuilder that facilitates diagram building for
- * a POMDP diagram. This class provides three utilities: adding /
- * accessing a plant system, RewardSystemInterface and StateObserverInterface.
- * Access to a mutable DiagramBuilder is provided by get_mutable_builder().
+ * A class that implements the (discrete time) Mdp interface using a system
+ * whose underlying dynamics are continuous time.
  */
 template <typename T>
-class PomdpDiagramBuilder {
+class MdpDiagram : public Diagram<T> {
  public:
-  DRAKE_NO_COPY_NO_MOVE_NO_ASSIGN(PomdpDiagramBuilder)
+  DRAKE_NO_COPY_NO_MOVE_NO_ASSIGN(MdpDiagram)
 
-  PomdpDiagramBuilder() {}
-
-  /**
-   * Builds a Diagram in two steps: connects all the
-   * StateFeedbackControllerInterface
-   * added using AddController() with the RigidBodyPlant added using
-   * AddPlant(), and connects the DrakeVisualizer if available with the plant.
-   * Then calls DiagramBuilder's Build() method and returns the resulting
-   * diagram. Must be called after AddPlant().
-   */
-  std::unique_ptr<systems::Diagram<T>> Build() {
-    ConnectObserversAndRewards();
-    return builder_.Build();
-  }
+  MdpDiagram() {}
 
   /**
-   * Builds a Diagram in two steps: connects all the
-   * StateFeedbackControllerInterface
-   * added using AddController() with the RigidBodyPlant added using
-   * AddPlant(), and connects the DrakeVisualizer if available with the plant.
-   * Then calls DiagramBuilder's BuildInto() method. Must be called after
-   * AddPlant().
-   * @param[out] target Pointer to the resulting diagram.
+   * Builds the Diagram in two steps: connects the plant, observer, and rewards
+   * that were added using AddPlant(), AddObserver(), and AddReward(), the calls
+   * the DiagramBuilder's BuildInto() method. Must be called after AddPlant()
+   * and AddReward().
    */
-  void BuildInto(systems::Diagram<T>* target) {
+  void Build() {
     ConnectObserversAndRewards();
-    builder_.BuildInto(target);
+    builder_.BuildInto(this);
   }
 
   /**
@@ -89,6 +71,9 @@ class PomdpDiagramBuilder {
     return reward_ptr;
   }
 
+  // TODO(pvarin): Add an AddReward() method that takes an std::function rather
+  // than a RewardSystem
+
   /**
    * Adds an observer of type ObserverType, which must be derived from
    * StateObserverInterface.
@@ -107,42 +92,38 @@ class PomdpDiagramBuilder {
     return observer_ptr;
   }
 
-  /**
-   * Returns a vector of RewardSystemInterface pointers for the current rewards
-   * instance @p instance_id.
-   */
-  std::vector<RewardSystemInterface<T>*> get_rewards() const {
-    return reward_systems_;
+  const InputPort<T>& get_input_port_action() const {
+    return this->get_input_port(input_port_action_);
+  }
+
+  const OutputPort<T>& get_output_port_reward() const {
+    return this->get_output_port(output_port_reward_);
+  }
+
+  const OutputPort<T>& get_output_port_observation() const {
+    return this->get_output_port(output_port_observation_);
   }
 
   /**
-   * Returns a vector of RewardSystemInterface pointers for the current rewards
-   * instance @p instance_id.
+   * Returns the full state of the system (positions and velocities). This port
+   * is designed to get the state for visualization and shouldn't be used for
+   * learning.
    */
-  std::vector<StateObserverInterface<T>*> get_observers() const {
-    return observers_;
+  const OutputPort<T>& get_output_port_state() const {
+    return this->get_output_port(output_port_state_);
   }
-
-  /**
-   * Returns a pointer to the plant System.
-   */
-  systems::System<T>* get_plant() const { return plant_; }
-
-  /**
-   * Returns a pointer to the underlying DiagramBuilder.
-   */
-  systems::DiagramBuilder<T>* get_mutable_builder() { return &builder_; }
 
  private:
-  // Connects the plant output to the reward systems and the observers. Sums the
-  // rewards and multiplexes the observers. If there are no observers it
-  // connects the state output to the observation port.
-  void ConnectObserversAndRewards();
+  // The port numbers for the port accessors.
+  int input_port_action_{-1};
+  int output_port_reward_{-1};
+  int output_port_observation_{-1};
+  int output_port_state_{-1};
 
   // The underlying DiagramBuilder.
   systems::DiagramBuilder<T> builder_;
 
-  // Pointer to the added System.
+  // Pointer to the plant System.
   systems::System<T>* plant_{nullptr};
 
   // A vector of reward system pointers.
@@ -150,6 +131,9 @@ class PomdpDiagramBuilder {
 
   // A vector of observer pointers.
   std::vector<StateObserverInterface<T>*> observers_;
+
+  // Connects the underlying diagram before simulating
+  void ConnectObserversAndRewards();
 };
 
 }  // namespace learning

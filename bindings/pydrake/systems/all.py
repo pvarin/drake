@@ -2,6 +2,7 @@ from .analysis import *
 from .controllers import *
 from .framework import *
 from .lcm import *
+from .learning import *
 from .primitives import *
 from .rendering import *
 from .sensors import *

@@ -41,32 +41,30 @@ class MdpDiagram : public Diagram<T> {
    * @param plant unique pointer to the System. Ownership will be transferred.
    * @return Pointer to the added plant.
    */
-  template <class PlantType>
-  PlantType* AddPlant(std::unique_ptr<PlantType> plant) {
-    DRAKE_DEMAND(dynamic_cast<systems::System<T>>(plant.get()));
-    DRAKE_DEMAND(plant.get_num_input_ports() == 1);
-    DRAKE_DEMAND(plant.get_num_output_ports() >= 1);
+  System<T>* AddPlant(std::unique_ptr<System<T>> plant) {
+    DRAKE_DEMAND(plant->get_num_input_ports() == 1);
+    DRAKE_DEMAND(plant->get_num_output_ports() >= 1);
 
-    PlantType* plant_ptr =
-        builder_.template AddSystem<PlantType>(std::move(plant));
+    System<T>* plant_ptr =
+        builder_.template AddSystem<System<T>>(std::move(plant));
     plant_ = plant_ptr;
 
     return plant_ptr;
   }
 
   /**
-   * Adds a reward of type RewardType, which must be derived from
+   * Adds a reward of type System<T>, which must be derived from
    * RewardSystemInterface. The reward system must have a single scalar output.
    * @param reward Unique pointer to the reward. Ownership will be transferred.
    * @return Pointer to the added reward.
    */
-  template <class RewardType>
-  RewardType* AddReward(std::unique_ptr<RewardType> reward) {
+  System<T>* AddReward(std::unique_ptr<System<T>> reward) {
     DRAKE_DEMAND(dynamic_cast<RewardSystemInterface<T>*>(reward.get()));
 
-    RewardType* reward_ptr =
-        builder_.template AddSystem<RewardType>(std::move(reward));
-    reward_systems_.push_back(reward_ptr);
+    System<T>* reward_ptr =
+        builder_.template AddSystem<System<T>>(std::move(reward));
+    reward_systems_.push_back(
+        dynamic_cast<RewardSystemInterface<T>*>(reward_ptr));
 
     return reward_ptr;
   }
@@ -75,19 +73,19 @@ class MdpDiagram : public Diagram<T> {
   // than a RewardSystem
 
   /**
-   * Adds an observer of type ObserverType, which must be derived from
+   * Adds an observer of type System<T>, which must be derived from
    * StateObserverInterface.
    * @param observer Unique pointer to the observer. Ownership will be
    * transferred.
    * @return Pointer to the added observer.
    */
-  template <class ObserverType>
-  ObserverType* AddObserver(std::unique_ptr<ObserverType> observer) {
+  System<T>* AddObserver(std::unique_ptr<System<T>> observer) {
     DRAKE_DEMAND(dynamic_cast<StateObserverInterface<T>*>(observer.get()));
 
-    ObserverType* observer_ptr =
-        builder_.template AddSystem<ObserverType>(std::move(observer));
-    observers_.push_back(observer_ptr);
+    System<T>* observer_ptr =
+        builder_.template AddSystem<System<T>>(std::move(observer));
+    observers_.push_back(
+        dynamic_cast<StateObserverInterface<T>*>(observer_ptr));
 
     return observer_ptr;
   }

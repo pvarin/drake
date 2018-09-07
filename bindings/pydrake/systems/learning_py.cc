@@ -12,6 +12,8 @@ PYBIND11_MODULE(learning, m) {
   // NOLINTNEXTLINE(build/namespaces): Emulate placement in namespace.
   using namespace drake::systems::learning;
 
+  py::module::import("pydrake.systems.framework");
+
   py::class_<MdpDiagram<double>, systems::Diagram<double>>(m, "MdpDiagram")
       .def(py::init<>())
       .def("Build", &MdpDiagram<double>::Build)

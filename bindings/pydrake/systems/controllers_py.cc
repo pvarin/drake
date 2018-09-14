@@ -11,6 +11,7 @@
 #include "drake/systems/controllers/dynamic_programming.h"
 #include "drake/systems/controllers/inverse_dynamics.h"
 #include "drake/systems/controllers/inverse_dynamics_controller.h"
+#include "drake/systems/controllers/pid_controller.h"
 #include "drake/systems/controllers/linear_quadratic_regulator.h"
 
 namespace drake {
@@ -88,6 +89,20 @@ PYBIND11_MODULE(controllers, m) {
            py::keep_alive<1, 2>())
       .def("set_integral_value",
            &InverseDynamicsController<double>::set_integral_value);
+
+    py::class_<PidController<double>, LeafSystem<double>>(
+      m, "PidController")
+      .def(py::init<const VectorX<double>&,
+                    const VectorX<double>&,
+                    const VectorX<double>&>(),
+           py::arg("kp"),
+           py::arg("ki"),
+           py::arg("kd"))
+      .def("set_integral_value",
+           &PidController<double>::set_integral_value)
+      .def("get_input_port_desired_state",
+           &PidController<double>::get_input_port_desired_state,
+           py_reference_internal);
 
   m.def("FittedValueIteration", WrapCallbacks(&FittedValueIteration));
 

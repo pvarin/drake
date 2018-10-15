@@ -97,6 +97,7 @@ void DefineFrameworkPyValues(py::module m) {
 
   // Add `Value<std::string>` instantiation (visible in Python as `Value[str]`).
   AddValueInstantiation<string>(m);
+  AddValueInstantiation<BasicVector<double>>(m);
 
   // Add `Value[object]` instantiation.
   // N.B. If any code explicitly uses `Value<py::object>` for whatever reason,

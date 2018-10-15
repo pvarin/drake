@@ -412,7 +412,10 @@ struct Impl {
             return self->GetMutableSubsystemContext(arg1, arg2);
           }, py_reference,
           // Keep alive, ownership: `return` keeps `Context` alive.
-          py::keep_alive<0, 3>());
+          py::keep_alive<0, 3>())
+      .def("GetSubsystemContext", &Diagram<T>::GetSubsystemContext,
+           py_reference_internal);
+
 
     // N.B. This will effectively allow derived classes of `VectorSystem` to
     // override `LeafSystem` methods, disrespecting `final`-ity.
